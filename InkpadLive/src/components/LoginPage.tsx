@@ -55,9 +55,9 @@ const LoginPage: FC<LoginPageProps> = ({ saveuser }) => {
           id: response.data.data.user._id.toString(),
           username: response.data.data.user.username,
         });
-        document.cookie = `token=${response.data.data.token}; path=/; max-age=${
-          60 * 60 * 24
-        }; SameSite=Lax; Secure;`;
+        // document.cookie = `token=${response.data.data.token}; path=/; max-age=${
+        //   60 * 60 * 24
+        // }; SameSite=Lax; Secure;`;
         navigate(`/home/:${response.data.data.user.username}`);
       }
     }catch(error){
