@@ -49,7 +49,7 @@ const App = () => {
   //     return Promise.reject(error);
   //   }
   // );
-  axios.default.withCredentials = true;
+  axios.defaults.withCredentials = true;
   const saveuser = ({ name, id, username }: user) => {
     setUser({ name: name, id: id, username: username });
   };
