@@ -117,12 +117,12 @@ Visit `http://localhost:5173` for the frontend.
 
 ## 🧠 Future Improvements
 
-* Document version history and restore
+* Document versioning
 * Offline editing with sync
-* Image/file upload support in markdown
+* Google Drive export support
+* Avatar and user photo support
 * Theme customization (light/dark)
-* GitHub/Google OAuth
-* Real-time cursor tracking
+
 
 ---
 
