@@ -42,6 +42,7 @@ const App = () => {
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
+      config.withCredentials = true;
       return config;
     },
     (error) => {
