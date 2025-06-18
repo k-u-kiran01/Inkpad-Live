@@ -28,14 +28,14 @@ export const userContext = createContext<user>({
 
 const App = () => {
   const [user, setUser] = useState<user>({ name: "", id: "", username: "" });
-  const getCookie = (name: string): string | null => {
-    const cookies = document.cookie.split("; ");
-    for (let cookie of cookies) {
-      const [key, val] = cookie.split("=");
-      if (key === name) return decodeURIComponent(val);
-    }
-    return null;
-  };
+  // const getCookie = (name: string): string | null => {
+  //   const cookies = document.cookie.split("; ");
+  //   for (let cookie of cookies) {
+  //     const [key, val] = cookie.split("=");
+  //     if (key === name) return decodeURIComponent(val);
+  //   }
+  //   return null;
+  // };
   // axios.interceptors.request.use(
   //   (config) => {
   //     const token = getCookie("token");
