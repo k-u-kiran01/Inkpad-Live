@@ -36,19 +36,20 @@ const App = () => {
     }
     return null;
   };
-  axios.interceptors.request.use(
-    (config) => {
-      const token = getCookie("token");
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      config.withCredentials = true;
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    }
-  );
+  // axios.interceptors.request.use(
+  //   (config) => {
+  //     const token = getCookie("token");
+  //     if (token && config.headers) {
+  //       config.headers.Authorization = `Bearer ${token}`;
+  //     }
+  //     config.withCredentials = true;
+  //     return config;
+  //   },
+  //   (error) => {
+  //     return Promise.reject(error);
+  //   }
+  // );
+  axios.default.withCredentials = true;
   const saveuser = ({ name, id, username }: user) => {
     setUser({ name: name, id: id, username: username });
   };
