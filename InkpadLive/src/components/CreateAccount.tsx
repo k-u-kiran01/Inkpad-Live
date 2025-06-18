@@ -39,7 +39,7 @@ const CreateAccount: FC<CreateAccountProps> = ({saveuser}) => {
       //   // Optionally redirect or show success
       //   navigate("/sign-in");
       // }
-      navigate("/sign-in");
+      navigate(`/home/:${response.data.data.newUser.username}`);
     } catch (err) {
       setError("Account creation failed. Please try again.");
     }
@@ -57,9 +57,9 @@ const CreateAccount: FC<CreateAccountProps> = ({saveuser}) => {
           id: response.data.data.user._id.toString(),
           username: response.data.data.user.username,
         });
-        document.cookie = `token=${response.data.data.token}; path=/; max-age=${
-          60 * 60 * 24
-        }; SameSite=Lax; Secure;`;
+        // document.cookie = `token=${response.data.data.token}; path=/; max-age=${
+        //   60 * 60 * 24
+        // }; SameSite=Lax; Secure;`;
         navigate(`/home/:${response.data.data.user.username}`);
       }
     } catch (error) {
