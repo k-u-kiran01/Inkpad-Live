@@ -32,13 +32,14 @@ const CreateAccount: FC<CreateAccountProps> = ({saveuser}) => {
           password,
         }
       );
-      if (response.data.data.token) {
-        document.cookie = `token=${response.data.data.token}; path=/; max-age=${
-          60 * 60 * 24
-        }; SameSite=Lax; Secure;`;
-        // Optionally redirect or show success
-        navigate("/sign-in");
-      }
+      // if (response.data.data.token) {
+      //   document.cookie = `token=${response.data.data.token}; path=/; max-age=${
+      //     60 * 60 * 24
+      //   }; SameSite=Lax; Secure;`;
+      //   // Optionally redirect or show success
+      //   navigate("/sign-in");
+      // }
+      navigate("/sign-in");
     } catch (err) {
       setError("Account creation failed. Please try again.");
     }
