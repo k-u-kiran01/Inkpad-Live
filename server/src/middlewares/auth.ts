@@ -1,8 +1,7 @@
 import jwt from 'jsonwebtoken'
-//import { Request, Response, NextFunction } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { jwt_secret_key } from '../../config/env';
 import User from '../../db/models/User';
-import { RequestHandler } from "express";
 declare global {
   namespace Express {
     interface Request {
@@ -11,7 +10,7 @@ declare global {
   }
 }
 
-const authorise:RequestHandler = async (req, res, next) => {
+const authorise = async (req:Request, res:Response, next:NextFunction) => {
   try {
     // const token = req.headers.authorization?.startsWith('Bearer') 
     //   ? req.headers.authorization.split(' ')[1] 
