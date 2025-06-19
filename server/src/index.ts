@@ -16,13 +16,18 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "https://inkpad-live.vercel.app", 
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST"],
+    credentials: true,
   }
 });
 
 registerDocumentSocket(io)
 
-app.use(cors());
+app.use(cors({
+  origin: "https://inkpad-live.vercel.app",
+  credentials: true,
+}));
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
 
