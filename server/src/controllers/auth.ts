@@ -76,7 +76,7 @@ export const signUp = async (
     res.cookie('token', token, {
   httpOnly: true,
   secure: true,
-  sameSite: 'None',
+  sameSite: 'none',
   maxAge: 24 * 60 * 60 * 1000
 }).status(201).json({
       success: true,
@@ -250,7 +250,7 @@ export const googleSignIn = async (
     res.cookie('token', token, {
   httpOnly: true,
   secure: true,
-  sameSite: 'None',
+  sameSite: 'none',
   maxAge: 24 * 60 * 60 * 1000
 }).status(200).json({
       data: {
