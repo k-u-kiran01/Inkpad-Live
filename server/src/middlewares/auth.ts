@@ -11,7 +11,7 @@ declare global {
   }
 }
 
-const authorise = asyncHandler(async (req:Request, res:Response, next:NextFunction)) => {
+const authorise = asyncHandler(async (req:Request, res:Response, next:NextFunction) => {
   try {
     // const token = req.headers.authorization?.startsWith('Bearer') 
     //   ? req.headers.authorization.split(' ')[1] 
@@ -39,6 +39,6 @@ const authorise = asyncHandler(async (req:Request, res:Response, next:NextFuncti
     res.status(401).json({ message: 'Unauthorised', error: message });
     return; 
   }
-};
+});
 
 export default authorise;
