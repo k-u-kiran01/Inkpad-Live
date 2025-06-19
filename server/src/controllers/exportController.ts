@@ -64,7 +64,7 @@ export const exportDoc = async (
       `;
 
       const browser = await puppeteer.launch({
-        headless: "new", // or true if using puppeteer < 21
+        headless: "true", // or true if using puppeteer < 21
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
       });
 
