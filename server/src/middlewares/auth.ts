@@ -13,12 +13,13 @@ declare global {
 
 const authorise = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const token = req.headers.authorization?.startsWith('Bearer') 
-      ? req.headers.authorization.split(' ')[1] 
-      : null;
+    // const token = req.headers.authorization?.startsWith('Bearer') 
+    //   ? req.headers.authorization.split(' ')[1] 
+    //   : null;
+    const token = req.cookies?.token;
 
     if (!token) {
-      res.status(401).json({ message: 'Unauthorised' });
+      res.status(401).json({ message: 'Unauthorised (missing token)' });
       return;
     }
 
