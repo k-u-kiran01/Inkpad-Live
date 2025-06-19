@@ -30,7 +30,7 @@ const LoginPage: FC<LoginPageProps> = ({ saveuser }) => {
         `${backend_base_url}/api/auth/sign-in`,
         { email, password }
       );
-      if (response.data.data.token) {
+      if (response.data.data.user) {
         saveuser({
           name: response.data.data.user.name,
           id: response.data.data.user._id.toString(),
