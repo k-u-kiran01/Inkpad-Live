@@ -7,13 +7,13 @@ const docsRoute =Router();
 // /api/docs/
 docsRoute.get('/md/:id', viewDoc)
 
-docsRoute.get('/md/:id/contributors', listcollaborators)
+docsRoute.get('/md/:id/contributors', asyncHandler(listcollaborators))
 
 docsRoute.post('/md/:id/contributors', authorise,asyncHandler(addCollaborators))
 
-docsRoute.delete('/md/:id/contributors', authorise,removecollaborator)
+docsRoute.delete('/md/:id/contributors', authorise,asyncHandler(removecollaborator))
 
-docsRoute.get('/md/:id/export/:format',exportDoc)
+docsRoute.get('/md/:id/export/:format',asyncHandler(exportDoc))
 
      
 export default docsRoute
