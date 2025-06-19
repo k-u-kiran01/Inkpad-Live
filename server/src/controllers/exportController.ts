@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { CustomError } from "../middlewares/error";
 import Document from "../../db/models/Document";
-import fs from "fs";
-import path from "path";
 import puppeteer from "puppeteer";
 import { marked } from "marked";
 
@@ -23,7 +21,6 @@ export const exportDoc = async (
     }
 
     const fileNameBase = `${doc.title.replace(/\s+/g, "_")}_${Date.now()}`;
-
     const supportedFormats = ["pdf", "md"];
 
     if (!supportedFormats.includes(formatType)) {
@@ -32,30 +29,22 @@ export const exportDoc = async (
       throw error;
     }
 
-    if (formatType === "md") {
-      const exportDir = path.join(__dirname, "../../../exports");
-      if (!fs.existsSync(exportDir)) {
-        fs.mkdirSync(exportDir, { recursive: true });
-      }
-      const fixedString = doc.content.replace(/\\n/g, "\n");
+    const fixedString = doc.content.replace(/\\n/g, "\n");
 
-      const filePath = path.join(exportDir, `${fileNameBase}.md`);
-      fs.writeFileSync(filePath, fixedString, "utf-8");
+    // ✅ Markdown export - stream buffer directly
+    if (formatType === "md") {
+      const buffer = Buffer.from(fixedString, "utf-8");
 
       res.setHeader(
         "Content-Disposition",
         `attachment; filename="${fileNameBase}.md"`
       );
       res.setHeader("Content-Type", "text/markdown");
-
-      return res.download(filePath, (err) => {
-        if (!err) fs.unlink(filePath, () => {});
-        else next(err);
-      });
+      return res.send(buffer);
     }
 
+    // ✅ PDF export - use puppeteer with Railway-safe launch config
     if (formatType === "pdf") {
-      const fixedString = doc.content.replace(/\\n/g, "\n");
       const html = `
         <html>
           <head>
@@ -74,7 +63,11 @@ export const exportDoc = async (
         </html>
       `;
 
-      const browser = await puppeteer.launch();
+      const browser = await puppeteer.launch({
+        headless: "new", // or true if using puppeteer < 21
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      });
+
       const page = await browser.newPage();
       await page.setContent(html, { waitUntil: "networkidle0" });
 
@@ -86,10 +79,10 @@ export const exportDoc = async (
         `attachment; filename="${fileNameBase}.pdf"`
       );
       res.setHeader("Content-Type", "application/pdf");
-      res.write(pdfBuffer);
-      res.end();
+      return res.send(pdfBuffer);
     }
   } catch (err) {
+    console.error("💥 Export Error:", err);
     next(err);
   }
 };
