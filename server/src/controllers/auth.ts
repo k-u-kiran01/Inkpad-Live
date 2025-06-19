@@ -73,11 +73,15 @@ export const signUp = async (
 
     await session.commitTransaction();
     session.endSession();
-    res.status(201).json({
+    resres.cookie('token', token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'None',
+  maxAge: 24 * 60 * 60 * 1000
+}).status(201).json({
       success: true,
       message: "User created succesfully",
       data: {
-        token,
         newUser,
       },
     });
@@ -116,13 +120,19 @@ export const signIn = async (
       { expiresIn: jwt_expiry as any }
     );
     // console.log(token)
-    res.status(200).json({
+    resres.cookie('token', token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'none',
+  maxAge: 24 * 60 * 60 * 1000
+}).status(200).json({
       success: true,
       data: {
         token,
         user,
       },
     });
+    
   } catch (error) {
     next(error);
   }
@@ -237,9 +247,13 @@ export const googleSignIn = async (
       jwt_secret_key as string,
       { expiresIn: jwt_expiry as any }
     );
-    res.status(200).json({
+    resres.cookie('token', token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'None',
+  maxAge: 24 * 60 * 60 * 1000
+}).status(200).json({
       data: {
-        token,
         user,
       },
     });
