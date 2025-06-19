@@ -27,7 +27,7 @@ app.use(cors({
   origin: "https://inkpad-live.vercel.app",
   credentials: true,
 }));
-
+app.use(cookieParser())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
 
@@ -35,7 +35,7 @@ app.use('/api/auth',authRoute)
 app.use('/api/home',dashboard)
 app.use('/api/docs',docsRoute)
 app.use('/api/edit-profile',editProfile)
-app.use(cookieParser())
+
 app.use(errorMiddleware)
 
 
