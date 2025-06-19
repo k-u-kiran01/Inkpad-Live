@@ -82,8 +82,10 @@ const EditProfilePage = () => {
           formDetails,
           oldEmail: user?.email,
         });
+        alert("Profile Details are updated");
       } catch (error) {
         console.log(error);
+        alert("Profile details updation failed");
       }
     }
   };
