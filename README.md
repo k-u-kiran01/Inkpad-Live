@@ -179,4 +179,5 @@ MIT License
 
 ---
 
-Let me know if you'd like to add setup videos, ER diagrams, or Swagger docs!
+## 📬 Support & Suggestions
+If you have any questions, feedback, or suggestions, feel free to reach out at udaykiran00701@gmail.com
