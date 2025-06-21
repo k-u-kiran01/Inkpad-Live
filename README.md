@@ -1,82 +1,99 @@
 # ✨ Inkpad Live
 
-Inkpad Live is a real-time collaborative markdown editor where multiple users can write, preview, and manage documents together. It features secure JWT-based authentication, live editing via WebSockets, export options, user profiles, and role-based permissions – all wrapped in a sleek, responsive UI built with modern technologies.
+Inkpad Live is a real-time collaborative Markdown editor where multiple users can write, preview, and manage documents together. It features secure JWT-based authentication, live editing via WebSockets, export options, user profiles, and role-based permissions – all wrapped in a sleek, responsive UI built with modern technologies.
 
 ---
 
 ## 🔧 Tech Stack
 
-- **Frontend**: React + TypeScript, Tailwind CSS, React Router, Axios, React-Markdown, remark-gfm, Socket.IO client
-- **Backend**: Node.js, Express, MongoDB (Mongoose), Socket.IO, JWT Authentication, Puppeteer (for PDF export), File system module (for markdown/pdf export)
-- **Authentication**: JWT (stored in HTTP-only cookies), with backend validation and frontend Axios interceptors
+* **Frontend**: React + TypeScript, Tailwind CSS, React Router, Axios, React-Markdown, remark-gfm, Socket.IO Client
+* **Backend**: Node.js, Express (v5), TypeScript, MongoDB (Mongoose), Socket.IO, JWT Authentication, Puppeteer (for PDF export), File System
+* **Authentication**: JWT in HTTP-only cookies, backend validation, and frontend Axios interceptors
 
 ---
 
 ## 💡 Features
 
-- Real-time markdown editing with live preview
-- GitHub-flavored markdown support
-- Viewers and collaborators panel with dynamic socket updates
-- Document creator can add/remove collaborators
-- Export as `.md` or `.pdf` (styled HTML converted to PDF using Puppeteer)
-- Auth system with login, signup, and JWT
-- Profile editing with instant availability checks for username/email
-- Organized boards and multiple document handling
-- Clean, responsive UI with TailwindCSS
+* 📝 Real-time collaborative Markdown editing with preview
+* 🧠 GitHub-flavored Markdown support (GFM)
+* 👥 Viewers and collaborators panel with socket updates
+* 🔐 JWT-based auth with secure cookies
+* 📤 Export as `.md` or `.pdf` using Puppeteer
+* 🧑‍💻 Creator-managed collaborators
+* ✍️ Profile editing with live checks
+* 🗂️ Organized boards and document panels
+* 💅 Sleek and responsive UI
 
 ---
 
 ## 📁 Folder Structure
 
 ```
-
 Inkpad-Live/
 ├── client/               # Frontend (React)
 │   ├── src/
 │   ├── public/
 │   └── vite.config.ts
-├── server/               # Backend (Node + Express)
+├── server/               # Backend (Node + Express + TS)
 │   ├── src/
 │   │   ├── routes/
 │   │   ├── controllers/
 │   │   ├── middlewares/
 │   │   └── socket/
-│   └── exports/          # Folder for temp PDF/Markdown files
+│   └── exports/          # Temporary files for export
 ├── README.md
 └── .env
-
-````
+```
 
 ---
 
-## 🧪 Usage
+## 🚀 Deployment
+
+* **Frontend**: [Vercel](https://vercel.com)
+* **Backend**: [Railway](https://railway.app)
+* **Live Site**: 🌍 [https://inkpad-live.vercel.app](https://inkpad-live.vercel.app)
+
+---
+
+## ⚙️ Scripts (`server/package.json`)
+
+```json
+"scripts": {
+  "start": "ts-node src/index.ts",
+  "dev": "nodemon --exec ts-node src/index.ts"
+}
+```
+
+---
+
+## 🧪 Getting Started
 
 1. **Clone the repo**
 
 ```bash
 git clone https://github.com/k-u-kiran01/Inkpad-Live.git
 cd Inkpad-Live
-````
+```
 
-2. **Setup backend**
+2. **Setup Backend**
 
 ```bash
 cd server
 npm install
-cp .env.example .env  # add your environment variables
-npm run dev            # or npm start for production
+cp .env.example .env  # or manually create .env
+npm run dev
 ```
 
-`.env` should include:
+`.env` format:
 
 ```
 port=5000
-db_url=<your-mongodb-uri>
-jwt_secret_key=<your-secret>
+db_url=mongodb+srv://<username>:<password>@cluster.mongodb.net/inkpad
+jwt_secret_key=your_jwt_secret
 jwt_expiry=3d
 ```
 
-3. **Setup frontend**
+3. **Setup Frontend**
 
 ```bash
 cd ../client
@@ -84,57 +101,82 @@ npm install
 npm run dev
 ```
 
-Visit `http://localhost:5173` for the frontend.
+Navigate to `http://localhost:5173`
 
 ---
 
 ## 🔌 WebSocket Events
 
-* `join-doc` → Join a document room
-* `markdown-change` → Send markdown content to others
-* `receive-markdown` → Receive content updates
-* `update-viewers` → Viewer panel refresh
-* `update-collaborators` → Collaborator permission changes
-* `leave-doc` → On tab close or route change
+| Event Name             | Description                          |
+| ---------------------- | ------------------------------------ |
+| `join-doc`             | Join document room                   |
+| `markdown-change`      | Send markdown content                |
+| `receive-markdown`     | Receive updated markdown             |
+| `update-viewers`       | Update viewers panel                 |
+| `update-collaborators` | Collaborator permission changes      |
+| `leave-doc`            | Triggered on tab close or navigation |
 
 ---
 
-## ⚙️ Backend Routes
+## 📡 Backend API Routes
 
-* `POST /api/auth/sign-up` – Register user
-* `POST /api/auth/sign-in` – Login and receive token
-* `GET /api/auth/me` – Get current user from token
-* `POST /api/edit-details` – Edit user profile
-* `GET /api/auth/check-username` – Check username availability
-* `GET /api/auth/check-email` – Check email availability
-* `GET /api/home/md/:userId` – Fetch user’s docs
-* `GET /api/docs/md/:docId` – Fetch document content
-* `POST /api/docs/md/:docId/contributors` – Add collaborator
-* `DELETE /api/docs/md/:docId/contributors` – Remove collaborator
-* `GET /api/docs/md/:docId/export/:format` – Export as PDF or Markdown
+| Method | Route                                         | Description                 |
+| ------ | --------------------------------------------- | --------------------------- |
+| POST   | `/api/auth/sign-up`                           | Register a new user         |
+| POST   | `/api/auth/sign-in`                           | Login and get JWT           |
+| GET    | `/api/auth/me`                                | Get current user info       |
+| POST   | `/api/edit-details`                           | Edit username or email      |
+| GET    | `/api/auth/check-username?username=xyz`       | Check username availability |
+| GET    | `/api/auth/check-email?email=xyz@example.com` | Check email availability    |
+| GET    | `/api/home/md/:userId`                        | Fetch user documents        |
+| GET    | `/api/docs/md/:docId`                         | Get document contents       |
+| POST   | `/api/docs/md/:docId/contributors`            | Add a collaborator          |
+| DELETE | `/api/docs/md/:docId/contributors`            | Remove a collaborator       |
+| GET    | `/api/docs/md/:docId/export/:format`          | Export as Markdown or PDF   |
+
+---
+
+## 📦 Dependencies (Backend)
+
+```
+Runtime:
+- express
+- mongoose
+- dotenv
+- jsonwebtoken
+- cookie-parser
+- marked
+- puppeteer
+- socket.io
+- socket.io-client
+
+Dev:
+- typescript
+- ts-node
+- nodemon
+- @types/node
+- @types/jsonwebtoken
+- @types/cookie-parser
+- @types/bcryptjs
+```
 
 ---
 
 ## 🧠 Future Improvements
 
-* Document versioning
-* Offline editing with sync
-* Google Drive export support
-* Avatar and user photo support
-* Theme customization (light/dark)
-
+* Version control & document history
+* Offline editing support
+* Google Drive / Dropbox export
+* User avatars & profile pictures
+* Theme toggle: Light/Dark mode
 
 ---
 
 ## 🛡️ License
 
 MIT License
-Copyright © 2025
-Developed by [@k-u-kiran01](https://github.com/k-u-kiran01)
+© 2025 [@k-u-kiran01](https://github.com/k-u-kiran01)
 
 ---
 
-**Deploy Status**
-Frontend: Vercel
-Backend: Render / VM or manual hosting
-Database: MongoDB Atlas (free tier)
+Let me know if you'd like to add setup videos, ER diagrams, or Swagger docs!
