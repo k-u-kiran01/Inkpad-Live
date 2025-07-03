@@ -49,7 +49,7 @@ const LoginPage: FC<LoginPageProps> = ({ saveuser }) => {
   const handleGoogleLogin = async (credential:Credential)=>{
     try{
       const response =await axios.post(`${backend_base_url}/api/auth/google`,credential);
-      if(response.data.data.token){
+      if(response.data.data.user){
         saveuser({
           name: response.data.data.user.name,
           id: response.data.data.user._id.toString(),
