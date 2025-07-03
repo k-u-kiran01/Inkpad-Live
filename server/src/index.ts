@@ -12,10 +12,18 @@ import {registerDocumentSocket} from "./socket/docSocket"
 import cors from 'cors'
 import editProfile from "./routes/editProfile";
 const app = express();
+import {front_end_url} from '../config/env'
+
+// app.use((req, res, next) => {
+//   res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+//   res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+//   next();
+// });
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://inkpad-live.vercel.app", 
+    origin: front_end_url, 
     methods: ["GET", "POST"],
     credentials: true,
   }
@@ -24,7 +32,7 @@ const io = new Server(server, {
 registerDocumentSocket(io)
 
 app.use(cors({
-  origin: "https://inkpad-live.vercel.app",
+  origin: front_end_url,
   credentials: true,
 }));
 app.use(cookieParser())
