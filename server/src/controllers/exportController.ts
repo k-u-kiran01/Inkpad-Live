@@ -64,8 +64,14 @@ export const exportDoc = async (
       `;
 
       const browser = await puppeteer.launch({
-        headless: true, // or true if using puppeteer < 21
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        headless: "shell", // Use shell mode for faster PDF generation (puppeteer v22+)
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage", // Overcome limited /dev/shm in Docker/cloud
+          "--disable-gpu",
+          "--disable-software-rasterizer",
+        ],
       });
 
       const page = await browser.newPage();
