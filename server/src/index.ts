@@ -33,11 +33,24 @@ app.use(cookieParser())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
 
+
+// Test endpoint to verify CORS is working
+app.get('/api/test-cors', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'CORS is working!',
+    origin: req.headers.origin,
+    allowedOrigin: front_end_url,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Routes
 app.use('/api/auth', authRoute)
 app.use('/api/home', dashboard)
 app.use('/api/docs', docsRoute)
 app.use('/api/edit-profile', editProfile)
+
 
 // Error handler middleware (must be last)
 app.use(errorMiddleware)
