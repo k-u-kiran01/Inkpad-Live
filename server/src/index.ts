@@ -2,7 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import http from "http";
 import { Server } from "socket.io";
-import { port, front_end_url } from '../config/env'
+import { port, front_end_url, NODE_ENV } from '../config/env'
 import authRoute from "./routes/auth";
 import connToDb from '../db/connect'
 import errorMiddleware from "./middlewares/error";
@@ -34,6 +34,17 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
 
 
+// Health check endpoint (no CORS needed)
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    environment: NODE_ENV,
+    frontendUrl: front_end_url,
+    timestamp: new Date().toISOString(),
+    version: '2.0-with-cors-fix'
+  });
+});
+
 // Test endpoint to verify CORS is working
 app.get('/api/test-cors', (req, res) => {
   res.json({ 
@@ -44,6 +55,7 @@ app.get('/api/test-cors', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
 
 // Routes
 app.use('/api/auth', authRoute)
