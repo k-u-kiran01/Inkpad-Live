@@ -6,38 +6,48 @@ const editProfile = Router();
 
 editProfile.post("/", async (req, res, next) => {
   const { formDetails, oldEmail } = req.body;
-
   const { email, username, name } = formDetails;
+  
   const session = await mongoose.startSession();
   session.startTransaction();
+  
   try {
     const user = await User.findOne({ email: oldEmail });
+    if (!user) {
+      await session.abortTransaction();
+      session.endSession();
+      res.status(400).json({ message: "User not found" });
+      return;
+    }
+    
     let updatedUser;
-    if (user?.googleId) {
+    if (user.googleId) {
+      // Google users cannot change email
       updatedUser = await User.findOneAndUpdate(
         { email: oldEmail },
-        { $set: { name: name, username: username } },
-        { new: true ,session}
+        { $set: { name, username } },
+        { new: true, session }
       );
     } else {
       updatedUser = await User.findOneAndUpdate(
         { email: oldEmail },
-        { $set: { name: name, email: email, username: username } },
-        { new: true ,session}
+        { $set: { name, email, username } },
+        { new: true, session }
       );
     }
+    
     if (!updatedUser) {
-      session.abortTransaction();
+      await session.abortTransaction();
       session.endSession();
-      res.status(400).json({ message: "user not found" });
+      res.status(400).json({ message: "Failed to update user" });
+      return;
     }
-    // console.log(updatedUser);
 
-    session.commitTransaction();
+    await session.commitTransaction();
     session.endSession();
     res.status(200).json({ success: true, data: updatedUser });
   } catch (error) {
-    session.abortTransaction();
+    await session.abortTransaction();
     session.endSession();
     next(error);
   }

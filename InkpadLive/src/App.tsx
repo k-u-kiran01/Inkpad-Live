@@ -8,86 +8,83 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 import axios from "axios";
 import { createContext, useEffect, useState } from "react";
+import EditDocument from "./components/EditDocument";
+import EditProfilePage from "./components/EditProfilePage";
+
 const backend_base_url = import.meta.env.VITE_BACKEND_URL;
+
+// Socket instance with autoConnect disabled - connected manually per document
 const socket: typeof Socket = io.connect(`${backend_base_url}`, {
   autoConnect: false,
 });
 
-import EditDocument from "./components/EditDocument";
-import EditProfilePage from "./components/EditProfilePage";
 interface user {
   name: string;
   id: string;
   username: string;
 }
-export const userContext = createContext<user>({
-  name: "guest",
-  id: "guest",
-  username: "guest",
-});
 
+// User context - null until auth check completes
+export const userContext = createContext<user | null>(null);
+
+/**
+ * Root App component
+ * - Checks authentication on mount before rendering routes
+ * - Provides user context to all child components
+ */
 const App = () => {
-  const [user, setUser] = useState<user>({ name: "", id: "", username: "" });
-  // const getCookie = (name: string): string | null => {
-  //   const cookies = document.cookie.split("; ");
-  //   for (let cookie of cookies) {
-  //     const [key, val] = cookie.split("=");
-  //     if (key === name) return decodeURIComponent(val);
-  //   }
-  //   return null;
-  // };
-  // axios.interceptors.request.use(
-  //   (config) => {
-  //     const token = getCookie("token");
-  //     if (token && config.headers) {
-  //       config.headers.Authorization = `Bearer ${token}`;
-  //     }
-  //     config.withCredentials = true;
-  //     return config;
-  //   },
-  //   (error) => {
-  //     return Promise.reject(error);
-  //   }
-  // );
+  const [user, setUser] = useState<user | null>(null);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+
+  // Enable credentials for cross-origin cookie handling
   axios.defaults.withCredentials = true;
+
+  // Callback to update user state after login/signup
   const saveuser = ({ name, id, username }: user) => {
-    setUser({ name: name, id: id, username: username });
+    setUser({ name, id, username });
   };
 
+  // Check authentication status on app load
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const res = await axios.get(`${backend_base_url}/api/auth/me`);
-        const user: user = {
+        setUser({
           name: res.data.data.user.name,
           id: res.data.data.user._id.toString(),
           username: res.data.data.user.username,
-        };
-        //console.log(user);
-        setUser(user);
-      } catch (error) {
-        const user: user = {
+        });
+      } catch {
+        // Auth failed - set as guest user
+        setUser({
           name: "guest",
           id: "guest1234567890",
           username: "guest",
-        };
-        // console.log(user);
-        setUser(user);
+        });
+      } finally {
+        setIsAuthChecked(true);
       }
     };
     fetchUser();
   }, []);
+
+  // Wait for auth check to complete before rendering
+  // This prevents socket from joining with incorrect user identity
+  if (!isAuthChecked || user === null) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#e0e0e0] to-[#f8f8f8]">
+        <div className="text-xl text-[#3d5a80]">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <userContext.Provider value={user}>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/sign-in" element={<LoginPage saveuser={saveuser} />} />
-          <Route
-            path="/sign-up"
-            element={<CreateAccount saveuser={saveuser} />}
-          />
-
+          <Route path="/sign-up" element={<CreateAccount saveuser={saveuser} />} />
           <Route path="/change-password" element={<ChangePassword />} />
           <Route path="/home/:id" element={<HomePage />} />
           <Route path="/md/:docId" element={<EditDocument socket={socket} />} />

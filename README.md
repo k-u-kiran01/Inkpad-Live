@@ -15,6 +15,7 @@ Inkpad Live is a real-time collaborative Markdown editor where multiple users ca
 ## 💡 Features
 
 * 📝 Real-time collaborative Markdown editing with preview
+* 🔄 Operational Transformation (OT) for conflict-free concurrent editing
 * 🧠 GitHub-flavored Markdown support (GFM)
 * 👥 Viewers and collaborators panel with socket updates
 * 🔐 JWT-based auth with secure cookies
@@ -30,17 +31,20 @@ Inkpad Live is a real-time collaborative Markdown editor where multiple users ca
 
 ```
 Inkpad-Live/
-├── client/               # Frontend (React)
+├── InkpadLive/           # Frontend (React + TypeScript)
 │   ├── src/
-│   ├── public/
+│   │   ├── components/
+│   │   ├── hooks/        # useCollaborativeMarkdown (OT sync)
+│   │   └── App.tsx
 │   └── vite.config.ts
 ├── server/               # Backend (Node + Express + TS)
 │   ├── src/
 │   │   ├── routes/
 │   │   ├── controllers/
 │   │   ├── middlewares/
-│   │   └── socket/
-│   └── exports/          # Temporary files for export
+│   │   ├── socket/       # Real-time collaboration (OT)
+│   │   └── utils/        # Transformation functions
+│   └── exports/          # Temporary files for PDF export
 ├── README.md
 └── .env
 ```
@@ -93,10 +97,8 @@ jwt_secret_key=your_jwt_secret
 jwt_expiry=3d
 ```
 
-3. **Setup Frontend**
-
 ```bash
-cd ../client
+cd ../InkpadLive
 npm install
 npm run dev
 ```
@@ -107,14 +109,18 @@ Navigate to `http://localhost:5173`
 
 ## 🔌 WebSocket Events
 
-| Event Name             | Description                          |
-| ---------------------- | ------------------------------------ |
-| `join-doc`             | Join document room                   |
-| `markdown-change`      | Send markdown content                |
-| `receive-markdown`     | Receive updated markdown             |
-| `update-viewers`       | Update viewers panel                 |
-| `update-collaborators` | Collaborator permission changes      |
-| `leave-doc`            | Triggered on tab close or navigation |
+| Event Name             | Direction | Description                                    |
+| ---------------------- | --------- | ---------------------------------------------- |
+| `join-doc`             | C → S     | Join document room with user info              |
+| `doc-init`             | S → C     | Initial document content + version             |
+| `markdown-change`      | C → S     | Send operation (OT-based edit)                 |
+| `receive-markdown`     | S → C     | Broadcast transformed operation to others      |
+| `ack`                  | C → S     | Acknowledge received version (for op pruning)  |
+| `resync`               | S → C     | Full document resync on conflict               |
+| `request-missed-ops`   | C → S     | Request ops missed during reconnection         |
+| `update-viewers`       | S → C     | Update viewers panel                           |
+| `update-collaborators` | S → C     | Collaborator permission changes                |
+| `leave-doc`            | C → S     | Leave document room                            |
 
 ---
 
@@ -145,6 +151,7 @@ Runtime:
 - dotenv
 - jsonwebtoken
 - cookie-parser
+- cors
 - marked
 - puppeteer
 - socket.io
@@ -157,6 +164,7 @@ Dev:
 - @types/node
 - @types/jsonwebtoken
 - @types/cookie-parser
+- @types/cors
 - @types/bcryptjs
 ```
 
