@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { CustomError } from "../middlewares/error";
 import Document from "../../db/models/Document";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import { marked } from "marked";
 
 export const exportDoc = async (
@@ -64,14 +65,9 @@ export const exportDoc = async (
       `;
 
       const browser = await puppeteer.launch({
-        headless: "shell", // Use shell mode for faster PDF generation (puppeteer v22+)
-        args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage", // Overcome limited /dev/shm in Docker/cloud
-          "--disable-gpu",
-          "--disable-software-rasterizer",
-        ],
+        args: chromium.args,
+        executablePath: await chromium.executablePath(),
+        headless: true,
       });
 
       const page = await browser.newPage();

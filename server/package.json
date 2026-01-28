@@ -4,7 +4,6 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "postinstall": "npx puppeteer browsers install chrome",
     "build": "tsc",
     "start": "node dist/src/index.js",
     "start:prod": "node dist/src/index.js",
@@ -14,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sparticuz/chromium": "^143.0.4",
     "@types/mongoose": "^5.11.96",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
