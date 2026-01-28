@@ -7,8 +7,8 @@ const authRoute= Router();
 // /api/auth/
 
 authRoute.post('/sign-in',signIn)
-authRoute.post('/sign-up/',signUp)
+authRoute.post('/sign-up',signUp)
 authRoute.post('/google',googleSignIn)
 authRoute.post('/change-password',changePassword)
-authRoute.get('/me/',authorise,getUserDetails)
+authRoute.get('/me',authorise,getUserDetails)
 export  default authRoute;

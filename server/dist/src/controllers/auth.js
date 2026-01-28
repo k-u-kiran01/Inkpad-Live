@@ -1,79 +1,206 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signOut = exports.signIn = exports.signUp = void 0;
+exports.googleSignIn = exports.getUserDetails = exports.changePassword = exports.signIn = exports.signUp = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const User_1 = __importDefault(require("../../db/models/User"));
-const bcrypt_ts_1 = require("bcrypt-ts");
-const salt = (0, bcrypt_ts_1.genSaltSync)(10);
-const signUp = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const session = yield mongoose_1.default.startSession();
+const crypto_1 = require("crypto");
+const usernameGenerator_1 = __importDefault(require("../usernameGenerator"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const env_1 = require("../../config/env");
+const crypto_2 = __importDefault(require("crypto"));
+function hashPassword(password) {
+    const hash = (0, crypto_1.createHash)("sha256");
+    hash.update(password);
+    return hash.digest("hex");
+}
+const comparePassword = (password, hashedPassword) => {
+    return hashPassword(password) === hashedPassword;
+};
+const signUp = async (req, res, next) => {
+    const session = await mongoose_1.default.startSession();
     session.startTransaction();
     try {
         let { name, email, password } = req.body;
-        const existingUser = yield User_1.default.findOne({ email });
+        const existingUser = await User_1.default.findOne({ email });
         if (existingUser) {
-            const error = new Error('User already exists');
+            const error = new Error("User already exists");
             error.statusCode = 409;
             throw error;
         }
-        password = (0, bcrypt_ts_1.hashSync)(password, salt);
-        const newUser = yield User_1.default.create({ name, email, password });
-        yield session.commitTransaction();
-        session.endSession();
-        res.status(201).json({
-            success: true,
-            message: 'User created succesfully',
-            data: {
-                newUser
-            }
-        });
-    }
-    catch (error) {
-        yield session.abortTransaction();
-        session.endSession();
-        next(error);
-    }
-});
-exports.signUp = signUp;
-const signIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { email, password } = req.body;
-        const user = yield User_1.default.findOne({ email });
-        if (!user) {
-            const error = new Error('User not Found');
+        password = hashPassword(password);
+        let username = (0, usernameGenerator_1.default)(name);
+        while (await User_1.default.findOne({ username })) {
+            const salt = crypto_2.default.randomUUID().slice(0, 5);
+            username = (0, usernameGenerator_1.default)(name + salt);
+        }
+        const newUsers = await User_1.default.create([{ name, email, password, username }], { session: session });
+        const newUser = newUsers[0];
+        if (!env_1.jwt_secret_key || !env_1.jwt_expiry) {
+            const error = new Error("jwt configuration missing");
             error.statusCode = 404;
             throw error;
         }
-        const isPasswordValid = (0, bcrypt_ts_1.compareSync)(password, user.password);
+        const token = jsonwebtoken_1.default.sign({ userId: newUser._id.toString() }, env_1.jwt_secret_key, { expiresIn: env_1.jwt_expiry });
+        await session.commitTransaction();
+        session.endSession();
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            maxAge: 24 * 60 * 60 * 1000
+        }).status(201).json({
+            success: true,
+            message: "User created succesfully",
+            data: {
+                newUser,
+            },
+        });
+    }
+    catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        next(error);
+    }
+};
+exports.signUp = signUp;
+const signIn = async (req, res, next) => {
+    try {
+        const { email, password } = req.body;
+        // console.log(email)
+        const user = await User_1.default.findOne({ email: email });
+        if (!user) {
+            const error = new Error("User not Found");
+            error.statusCode = 404;
+            throw error;
+        }
+        const isPasswordValid = comparePassword(password, user.password);
         if (!isPasswordValid) {
-            const error = new Error('Invalid password');
+            const error = new Error("Invalid password");
             error.statusCode = 401;
             throw error;
         }
-        res.status(201).json({
+        const token = jsonwebtoken_1.default.sign({ userId: user._id.toString() }, env_1.jwt_secret_key, { expiresIn: env_1.jwt_expiry });
+        // console.log(token)
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            maxAge: 24 * 60 * 60 * 1000
+        }).status(200).json({
             success: true,
             data: {
-                user
-            }
+                token,
+                user,
+            },
         });
     }
     catch (error) {
         next(error);
     }
-});
+};
 exports.signIn = signIn;
-const signOut = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-});
-exports.signOut = signOut;
+const changePassword = async (req, res, next) => {
+    const session = await mongoose_1.default.startSession();
+    session.startTransaction();
+    try {
+        const { email, oldPass, newPass } = req.body;
+        const user = await User_1.default.findOne({ email });
+        if (!user) {
+            const error = new Error("User not Found");
+            error.statusCode = 404;
+            throw error;
+        }
+        const isPasswordValid = comparePassword(oldPass, user.password);
+        if (!isPasswordValid) {
+            const error = new Error("Password does not match");
+            error.statusCode = 402;
+            throw error;
+        }
+        const hashnewPass = hashPassword(newPass);
+        const updatedUser = await User_1.default.findOneAndUpdate({ email: email }, { $set: { password: hashnewPass } }, { new: true, session });
+        await session.commitTransaction();
+        session.endSession();
+        res.status(201).json({
+            success: true,
+            data: {
+                updatedUser,
+            },
+        });
+    }
+    catch (error) {
+        session.abortTransaction();
+        session.endSession();
+        next(error);
+    }
+};
+exports.changePassword = changePassword;
+const getUserDetails = (req, res, next) => {
+    const user = req.user;
+    res.status(200).json({
+        success: true,
+        data: {
+            user,
+        },
+    });
+};
+exports.getUserDetails = getUserDetails;
+const googleSignIn = async (req, res, next) => {
+    try {
+        const { email, name, sub } = req.body;
+        let user = await User_1.default.findOne({ email });
+        if (!user) {
+            const password = hashPassword(crypto_2.default.randomUUID());
+            const session = await User_1.default.startSession();
+            session.startTransaction();
+            try {
+                let username = (0, usernameGenerator_1.default)(name);
+                while (await User_1.default.findOne({ username })) {
+                    const salt = crypto_2.default.randomUUID().slice(0, 5);
+                    username = (0, usernameGenerator_1.default)(name + salt);
+                }
+                user = await User_1.default.create({
+                    email: email,
+                    name: name,
+                    password: password,
+                    googleId: sub,
+                    username: username,
+                });
+                session.commitTransaction();
+                session.endSession();
+            }
+            catch (error) {
+                session.abortTransaction();
+                session.endSession();
+                res.status(500).json({ message: "Internal Server Error", error });
+                console.log(error);
+                return;
+            }
+        }
+        else if (!user.googleId) {
+            const error = new Error("The Account associated with this Email has a password. Please login with the password");
+            error.statusCode = 400;
+            res.status(error.statusCode).json({ message: error.message });
+            return;
+        }
+        const token = jsonwebtoken_1.default.sign({ userId: user?._id.toString() }, env_1.jwt_secret_key, { expiresIn: env_1.jwt_expiry });
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            maxAge: 24 * 60 * 60 * 1000
+        }).status(200).json({
+            data: {
+                user,
+            },
+        });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Something went wrong", error });
+        return;
+    }
+};
+exports.googleSignIn = googleSignIn;
