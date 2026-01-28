@@ -7,15 +7,20 @@ import { userContext } from "../App";
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
 import type { FC } from "react";
-interface user {
-  name: string;
-  id: string;
-  username: string;
-}
+
 
 const HomePage: FC = () => {
-  const user:user = useContext(userContext);
- const backend_base_url = import.meta.env.VITE_BACKEND_URL;
+  const user = useContext(userContext);
+  const backend_base_url = import.meta.env.VITE_BACKEND_URL;
+
+  // Handle null user case
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#e0e0e0] to-[#f8f8f8]">
+        <div className="text-xl text-[#3d5a80]">Loading user data...</div>
+      </div>
+    );
+  }
 
  type doc = {
     _id: string;

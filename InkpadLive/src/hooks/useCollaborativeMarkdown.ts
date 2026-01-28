@@ -78,7 +78,7 @@ export function useCollaborativeMarkdown({
   const selectionRangeRef = useRef<SelectionRange | null>(null);
   
   // Debouncing for socket emissions
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingOperationRef = useRef<Operation | null>(null);
   
   // Error handling and retry logic
