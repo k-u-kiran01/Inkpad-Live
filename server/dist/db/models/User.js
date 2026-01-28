@@ -17,6 +17,7 @@ const userSchema = new mongoose_1.default.Schema({
         required: [true, "User Email is required"],
         trim: true,
         unique: true,
+        index: true,
         lowercase: true,
         match: [/\S+@\S+\.\S+/, 'please fill a valid email address'],
     },
@@ -24,10 +25,27 @@ const userSchema = new mongoose_1.default.Schema({
         type: String,
         required: [true, "User Password is required"],
     },
+    username: {
+        type: String,
+        unique: true,
+        required: true,
+        index: true
+    },
     docs: {
-        type: [mongoose_1.default.Schema.Types.ObjectId],
-        ref: 'Document',
+        type: [
+            {
+                _id: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Document" },
+                title: { type: String },
+                docId: { type: String },
+                createdAt: { type: String }
+            }
+        ],
         default: []
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true,
     }
 }, { timestamps: true });
 const User = mongoose_1.default.model('User', userSchema);
